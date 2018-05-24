@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -18,12 +19,15 @@ import android.widget.Toast;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+import mimerme.github.io.blewtooth.temp.MyRecyclerViewAdapter;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
     private BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
     private RecyclerView mRecycleView;
     private BlutoothListAdapter mBTList;
+    private MyRecyclerViewAdapter adapter;
 
     ArrayList<mimerme.github.io.blewtooth.BluetoothDevice> blueToothDevices
             = new ArrayList<mimerme.github.io.blewtooth.BluetoothDevice>();
@@ -48,9 +52,14 @@ public class MainActivity extends AppCompatActivity {
 
         mTextMessage = (TextView) findViewById(R.id.message);
         mRecycleView = (RecyclerView) findViewById(R.id.bluetoothList);
+        mRecycleView.setLayoutManager(new LinearLayoutManager(this));
+
+        mBTList = new BlutoothListAdapter(this, blueToothDevices);
         mRecycleView.setAdapter(mBTList);
 
-        mBTList = new BlutoothListAdapter(blueToothDevices);
+        //mRecycleView.setLayoutManager(new LinearLayoutManager(this));
+        //adapter = new MyRecyclerViewAdapter(this, animalNames);
+        //mRecycleView.setAdapter(adapter);
 
         BroadcastReceiver receiver = new BroadcastReceiver(){
             @Override
@@ -59,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
                 if(BluetoothDevice.ACTION_FOUND.equals(action)) {
                     short rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
                     String name = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
-                    blueToothDevices.add(new mimerme.github.io.blewtooth.BluetoothDevice(name, rssi));
                     addDevice(name, rssi);
                     mBTList.notifyDataSetChanged();
                     Toast.makeText(getApplicationContext(),"  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
@@ -67,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(context, "Starting another discovery...", Toast.LENGTH_SHORT).show();
                     BTAdapter.startDiscovery();
                 }
-
             }
         };
         registerReceiver(receiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
